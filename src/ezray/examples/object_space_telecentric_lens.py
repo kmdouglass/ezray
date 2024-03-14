@@ -38,7 +38,7 @@ system: OpticalSystem = OpticalSystem(
 _paraxial_properties = {
     "aperture_stop": 3,
     "back_focal_length": 0.0,
-    "back_principal_plane": 1.80174,
+    "back_principal_plane": 2.0,
     "chief_ray": np.array(
         [
             [[1.0, 0.0]],
@@ -48,11 +48,11 @@ _paraxial_properties = {
             [[-1.084270, -0.06259]],
         ]
     ),
-    "effective_focal_length": 50.097,
+    "effective_focal_length": 15.97699,
     "entrance_pupil": {"location": np.inf, "semi_diameter": np.nan},
     "exit_pupil": {"location": 17.97699, "semi_diameter": 1.0},
-    "front_focal_length": -50.097,
-    "front_principal_plane": 0.0,
+    "front_focal_length": -14.734943,
+    "front_principal_plane": 1.242047,
     "marginal_ray": np.array(
         [
             [[0, 0.06259001]],
