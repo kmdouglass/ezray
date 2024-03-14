@@ -98,8 +98,8 @@ class ParaxialModel:
         """Returns the back focal length of the system."""
         results = self.parallel_ray
 
-        last_noop_surface_id = self.sequential_model.last_op_surface_id
-        bfl = z_intercept(results[last_noop_surface_id])[0]
+        last_real_surface_id = self.sequential_model.last_real_surface_id
+        bfl = z_intercept(results[last_real_surface_id])[0]
         return bfl
 
     @cached_property
@@ -108,8 +108,9 @@ class ParaxialModel:
 
         delta = self.back_focal_length - self.effective_focal_length
 
-        # Compute the z-position of the last surface before the image plane.
-        z = self.z_coordinate(len(self.sequential_model.surfaces) - 2)
+        # Compute the z-position of the last real surface before the image plane.
+        last_real_surface_id = self.sequential_model.last_real_surface_id
+        z = self.z_coordinate(last_real_surface_id)
 
         return z + delta
 
@@ -203,7 +204,9 @@ class ParaxialModel:
         """Returns the front focal length of the system."""
         results = self.reversed_parallel_ray
 
-        ffl = z_intercept(results[-1])[0]
+        first_real_surface_id = self.sequential_model.first_real_surface_id
+        results_id = self.sequential_model.reverse_id(first_real_surface_id)
+        ffl = z_intercept(results[results_id])[0]
         return ffl
 
     @cached_property

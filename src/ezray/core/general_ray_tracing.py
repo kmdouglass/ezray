@@ -27,6 +27,9 @@ class Surface(Protocol):
     def __post_init__(self):
         if self.semi_diameter < 0:
             raise ValueError("Semi-diameter must be non-negative.")
+        
+    def is_real(self) -> bool:
+        return True
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -41,12 +44,29 @@ class Image(Surface):
     semi_diameter: float = field(default=np.inf, init=False)
     surface_type: SurfaceType = field(default=SurfaceType.NOOP, init=False)
 
+    def is_real(self) -> bool:
+        return False
+
 
 @dataclass(frozen=True, kw_only=True)
 class Object(Surface):
     radius_of_curvature: float = field(default=np.inf, init=False)
     semi_diameter: float = field(default=np.inf, init=False)
     surface_type: SurfaceType = field(default=SurfaceType.NOOP, init=False)
+
+    def is_real(self) -> bool:
+        return False
+
+
+@dataclass(frozen=True, kw_only=True)
+class Probe(Surface):
+    """A surface without any effect on rays that is used to measure intersections."""
+    radius_of_curvature: float = field(default=np.inf, init=False)
+    semi_diameter: float = field(default=np.inf, init=False)
+    surface_type: SurfaceType = field(default=SurfaceType.NOOP, init=False)
+
+    def is_real(self) -> bool:
+        return False
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -80,12 +100,19 @@ class SequentialModel(Sequence[TracingStep]):
     """A sequence of gaps and surfaces that is required at each ray tracing step."""
 
     @property
+    def first_real_surface_id(self) -> int:
+        """Return the id of the first surface that is a real surface."""
+
+    @property
     def gaps(self) -> list[Gap]:
         """Return a list of gaps in the model."""
 
     @property
-    def last_op_surface_id(self) -> int:
-        """Return the id of the last surface that is not a noop surface."""
+    def last_real_surface_id(self) -> int:
+        """Return the id of the last surface that is a real surface."""
+
+    def reverse_id(self, surface_id: int) -> int:
+        """Return the surface ID when the model is reversed."""
 
     @property
     def surfaces(self) -> list[Surface]:

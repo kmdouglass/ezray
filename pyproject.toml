@@ -1,9 +1,9 @@
 [tool.poetry]
 name = "ezray"
 version = "0.1.0"
-description = "First order ray tracer for optical systems"
+description = "Prototypes and test cases for optical systems design algorithms"
 authors = ["Kyle M. Douglass <kyle.m.douglass@gmail.com>"]
-license = "MIT"
+license = "BSD3"
 readme = "README.md"
 packages = [
     { include = "ezray", from = "src" }

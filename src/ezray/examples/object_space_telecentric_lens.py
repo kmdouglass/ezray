@@ -36,7 +36,7 @@ system: OpticalSystem = OpticalSystem(
 
 _paraxial_properties = {
     "aperture_stop": 3,
-    "back_focal_length": 15.97699,
+    "back_focal_length": 0.0,
     "back_principal_plane": 1.80174,
     "chief_ray": np.array(
         [

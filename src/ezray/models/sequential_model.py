@@ -72,18 +72,31 @@ class DefaultSequentialModel:
 
     def _is_obj_at_inf(self) -> bool:
         return np.isinf(self.gaps[0].thickness)
+    
+    @cached_property
+    def first_real_surface_id(self) -> int:
+        """Returns the id of the first real surface."""
+        for surf_id in range(len(self.surfaces)):
+            if self.surfaces[surf_id].is_real():
+                return surf_id
+        raise ValueError("The system has no real surfaces.")
 
     @cached_property
     def gaps(self) -> list[Gap]:
         return [element for element in self.model if isinstance(element, Gap)]
 
     @cached_property
-    def last_op_surface_id(self) -> Surface:
-        """Returns the id of the last surface that is not a no-op surface."""
+    def last_real_surface_id(self) -> Surface:
+        """Returns the id of the last real surface."""
         for surf_id in reversed(range(len(self.surfaces))):
-            if self.surfaces[surf_id].surface_type != SurfaceType.NOOP:
+            if self.surfaces[surf_id].is_real():
                 return surf_id
-        raise ValueError("The system has no non-no-op surfaces.")
+        raise ValueError("The system has no real surfaces.")
+    
+    def reverse_id(self, surf_id: int) -> int:
+        """Return the reversed surface id."""
+        # Reversed results are ray starts, then image plane, then surfaces!
+        return len(self.surfaces) - surf_id
 
     @cached_property
     def surfaces(self) -> list[Surface]:
