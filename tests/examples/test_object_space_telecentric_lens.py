@@ -52,7 +52,7 @@ def test_effective_focal_length(pmid):
 
 
 @pytest.mark.parametrize("pmid", PARAXIAL_PROPERTIES.keys())
-def test_entrance_pupil_location(pmid):
+def test_entrance_pupil(pmid):
     assert np.allclose(
         system.paraxial_models[pmid].entrance_pupil["location"],
         PARAXIAL_PROPERTIES[pmid]["entrance_pupil"]["location"],
@@ -64,7 +64,7 @@ def test_entrance_pupil_location(pmid):
 
 
 @pytest.mark.parametrize("pmid", PARAXIAL_PROPERTIES.keys())
-def test_exit_pupil_location(pmid):
+def test_exit_pupil(pmid):
     assert np.allclose(
         system.paraxial_models[pmid].exit_pupil["location"],
         PARAXIAL_PROPERTIES[pmid]["exit_pupil"]["location"],
@@ -100,5 +100,33 @@ def test_marginal_ray(pmid):
     assert np.allclose(
         system.paraxial_models[pmid].marginal_ray,
         PARAXIAL_PROPERTIES[pmid]["marginal_ray"],
+        atol=ATOL,
+    )
+
+
+@pytest.mark.parametrize("pmid", PARAXIAL_PROPERTIES.keys())
+def test_paraxial_image_plane(pmid):
+    assert np.allclose(
+        system.paraxial_models[pmid].paraxial_image_plane["location"],
+        PARAXIAL_PROPERTIES[pmid]["paraxial_image_plane"]["location"],
+        atol=ATOL,
+    )
+    assert np.allclose(
+        system.paraxial_models[pmid].paraxial_image_plane["semi_diameter"],
+        PARAXIAL_PROPERTIES[pmid]["paraxial_image_plane"]["semi_diameter"],
+        atol=ATOL,
+    )
+
+
+@pytest.mark.parametrize("pmid", PARAXIAL_PROPERTIES.keys())
+def test_user_image_plane(pmid):
+    assert np.allclose(
+        system.paraxial_models[pmid].user_image_plane["location"],
+        PARAXIAL_PROPERTIES[pmid]["user_image_plane"]["location"],
+        atol=ATOL,
+    )
+    assert np.allclose(
+        system.paraxial_models[pmid].user_image_plane["semi_diameter"],
+        PARAXIAL_PROPERTIES[pmid]["user_image_plane"]["semi_diameter"],
         atol=ATOL,
     )

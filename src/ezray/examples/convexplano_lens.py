@@ -62,6 +62,8 @@ _paraxial_properties = {
             [[0, -0.24950]],
         ]
     ),
+    "paraxial_image_plane": {"location": 51.89874, "semi_diameter": 4.382944},
+    "user_image_plane": {"location": 51.89874, "semi_diameter": 4.382944},
 }
 
 PARAXIAL_PROPERTIES: dict[ParaxialModelID, dict[str, Any]] = {

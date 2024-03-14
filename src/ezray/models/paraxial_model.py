@@ -64,6 +64,11 @@ def propagate(rays: npt.NDArray[Float], distance: float) -> npt.NDArray[Float]:
     return new_rays
 
 
+class ImagePlane(TypedDict):
+    location: float
+    semi_diameter: float
+
+
 class Pupil(TypedDict):
     location: float
     semi_diameter: float
@@ -243,6 +248,21 @@ class ParaxialModel:
         return trace(ray, self.sequential_model)
 
     @cached_property
+    def paraxial_image_plane(self) -> ImagePlane:
+        """Returns the paraxial image plane.
+
+        This is the theoretical image plane, not the user-defined one.
+
+        """
+        dz = z_intercept(self.marginal_ray[-1])[0]
+        location = self.z_coordinate(len(self.sequential_model.surfaces) - 1) + dz
+
+        # Take the chief ray and propagate it to the theoretical image plane.
+        semi_diameter = abs(propagate(self.chief_ray[-1], dz)[0, 0])
+
+        return {"location": location, "semi_diameter": semi_diameter}
+
+    @cached_property
     def pseudo_marginal_ray(self) -> RayTraceResults:
         """Traces a pseudo-marginal ray through the system."""
 
@@ -261,6 +281,21 @@ class ParaxialModel:
         ray = RayFactory.ray(height=1.0, angle=0.0)
 
         return trace(ray, self.sequential_model, reverse=True)
+
+    @cached_property
+    def user_image_plane(self) -> ImagePlane:
+        """Returns the location and semi-diameter of the user-defined image plane.
+
+        This is a user-defined quantity because the image-space gap is provided by
+        the user. To get the theoretical location, we need to use a marginal ray
+        solve to find the olcation where the marginal ray intercepts the axis in the
+        image space.
+
+        """
+        location = self.z_coordinate(len(self.sequential_model.surfaces) - 1)
+        semi_diameter = abs(self.chief_ray[-1, 0, 0])
+
+        return {"location": location, "semi_diameter": semi_diameter}
 
     def z_coordinate(self, surface_id: int) -> float:
         """Returns the z-coordinate of a surface.

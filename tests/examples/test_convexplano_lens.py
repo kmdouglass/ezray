@@ -104,3 +104,31 @@ def test_marginal_ray(pmid):
         PARAXIAL_PROPERTIES[pmid]["marginal_ray"],
         atol=ATOL,
     )
+
+
+@pytest.mark.parametrize("pmid", PARAXIAL_PROPERTIES.keys())
+def test_paraxial_image_plane(pmid):
+    assert np.allclose(
+        system.paraxial_models[pmid].paraxial_image_plane["location"],
+        PARAXIAL_PROPERTIES[pmid]["paraxial_image_plane"]["location"],
+        atol=ATOL,
+    )
+    assert np.allclose(
+        system.paraxial_models[pmid].paraxial_image_plane["semi_diameter"],
+        PARAXIAL_PROPERTIES[pmid]["paraxial_image_plane"]["semi_diameter"],
+        atol=ATOL,
+    )
+
+
+@pytest.mark.parametrize("pmid", PARAXIAL_PROPERTIES.keys())
+def test_user_image_plane(pmid):
+    assert np.allclose(
+        system.paraxial_models[pmid].user_image_plane["location"],
+        PARAXIAL_PROPERTIES[pmid]["user_image_plane"]["location"],
+        atol=ATOL,
+    )
+    assert np.allclose(
+        system.paraxial_models[pmid].user_image_plane["semi_diameter"],
+        PARAXIAL_PROPERTIES[pmid]["user_image_plane"]["semi_diameter"],
+        atol=ATOL,
+    )
