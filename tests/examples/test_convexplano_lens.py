@@ -34,6 +34,15 @@ def test_back_principal_plane(pmid):
 
 
 @pytest.mark.parametrize("pmid", PARAXIAL_PROPERTIES.keys())
+def test_chief_ray(pmid):
+    assert np.allclose(
+        system.paraxial_models[pmid].chief_ray,
+        PARAXIAL_PROPERTIES[pmid]["chief_ray"],
+        atol=ATOL,
+    )
+
+
+@pytest.mark.parametrize("pmid", PARAXIAL_PROPERTIES.keys())
 def test_effective_focal_length(pmid):
     assert np.allclose(
         system.paraxial_models[pmid].effective_focal_length,

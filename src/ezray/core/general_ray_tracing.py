@@ -27,7 +27,7 @@ class Surface(Protocol):
     def __post_init__(self):
         if self.semi_diameter < 0:
             raise ValueError("Semi-diameter must be non-negative.")
-        
+
     def is_real(self) -> bool:
         return True
 
@@ -61,6 +61,7 @@ class Object(Surface):
 @dataclass(frozen=True, kw_only=True)
 class Probe(Surface):
     """A surface without any effect on rays that is used to measure intersections."""
+
     radius_of_curvature: float = field(default=np.inf, init=False)
     semi_diameter: float = field(default=np.inf, init=False)
     surface_type: SurfaceType = field(default=SurfaceType.NOOP, init=False)

@@ -203,7 +203,19 @@ def test_sequential_model_last_real_surface_id():
     surf_5 = Image()
 
     system = DefaultSequentialModel(
-        [surf_0, gap_0, surf_1, gap_1, surf_2, gap_2, surf_3, gap_3, surf_4, gap_4, surf_5]
+        [
+            surf_0,
+            gap_0,
+            surf_1,
+            gap_1,
+            surf_2,
+            gap_2,
+            surf_3,
+            gap_3,
+            surf_4,
+            gap_4,
+            surf_5,
+        ]
     )
 
     assert system.last_real_surface_id == 3  # A stop is a real surface
@@ -229,7 +241,19 @@ def test_sequential_model_first_real_surface_id():
     surf_5 = Image()
 
     system = DefaultSequentialModel(
-        [surf_0, gap_0, surf_1, gap_1, surf_2, gap_2, surf_3, gap_3, surf_4, gap_4, surf_5]
+        [
+            surf_0,
+            gap_0,
+            surf_1,
+            gap_1,
+            surf_2,
+            gap_2,
+            surf_3,
+            gap_3,
+            surf_4,
+            gap_4,
+            surf_5,
+        ]
     )
 
     assert system.first_real_surface_id == 2  # A stop is a real surface

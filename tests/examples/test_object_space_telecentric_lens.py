@@ -24,10 +24,13 @@ def test_back_focal_length(pmid):
     )
 
 
-# @pytest.mark.parametrize("pmid", PARAXIAL_PROPERTIES.keys())
-# def test_chief_ray(pmid):
-#     print(system.paraxial_models[pmid].chief_ray)
-#     raise
+@pytest.mark.parametrize("pmid", PARAXIAL_PROPERTIES.keys())
+def test_chief_ray(pmid):
+    assert np.allclose(
+        system.paraxial_models[pmid].chief_ray,
+        PARAXIAL_PROPERTIES[pmid]["chief_ray"],
+        atol=ATOL,
+    )
 
 
 @pytest.mark.parametrize("pmid", PARAXIAL_PROPERTIES.keys())

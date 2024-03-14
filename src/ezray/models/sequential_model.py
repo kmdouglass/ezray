@@ -72,7 +72,7 @@ class DefaultSequentialModel:
 
     def _is_obj_at_inf(self) -> bool:
         return np.isinf(self.gaps[0].thickness)
-    
+
     @cached_property
     def first_real_surface_id(self) -> int:
         """Returns the id of the first real surface."""
@@ -92,7 +92,7 @@ class DefaultSequentialModel:
             if self.surfaces[surf_id].is_real():
                 return surf_id
         raise ValueError("The system has no real surfaces.")
-    
+
     def reverse_id(self, surf_id: int) -> int:
         """Return the reversed surface id."""
         # Reversed results are ray starts, then image plane, then surfaces!
