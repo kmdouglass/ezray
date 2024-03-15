@@ -9,6 +9,7 @@ from numpy.linalg import inv
 import numpy.typing as npt
 
 from ezray.core.general_ray_tracing import (
+    Axis,
     Conic,
     Float,
     Image,
@@ -76,9 +77,26 @@ class Pupil(TypedDict):
 
 @dataclass(frozen=True)
 class ParaxialModel:
+    """A paraxial model of an optical system.
+
+    Parameters
+    ----------
+    sequential_model : SequentialModel
+        The sequential model of the optical system.
+    fields : set[FieldSpec]
+        The field specs of the optical system.
+    object_space_telecentric : bool, optional
+        If True, the system is telecentric in the object space. This forces the chief
+        ray angles to be parallel to the axis in object space. Default is False.
+    axis : Axis, optional
+        The axis of the system to use for ray traces. Default is Axis.Y.
+
+    """
+
     sequential_model: SequentialModel
     fields: set[FieldSpec]
     object_space_telecentric: bool = False
+    axis: Axis = Axis.Y
 
     @cached_property
     def aperture_stop(self) -> int:
@@ -106,6 +124,13 @@ class ParaxialModel:
 
         last_real_surface_id = self.sequential_model.last_real_surface_id
         bfl = z_intercept(results[last_real_surface_id])[0]
+
+        # I would expect an infinite BFL to be positive inf, but the intercept
+        # calculation can be negative to cover all the non-infinite cases. Either
+        # way, this is an edge case that is handled to make "intuitive sense."
+        if np.isneginf(bfl):
+            return np.inf
+
         return bfl
 
     @cached_property
@@ -113,6 +138,10 @@ class ParaxialModel:
         """Returns the z-coordinate of the rear principal plane."""
 
         delta = self.back_focal_length - self.effective_focal_length
+
+        # Principal planes make no sense for surfaces without power.
+        if np.isinf(delta):
+            return np.nan
 
         # Compute the z-position of the last real surface before the image plane.
         last_real_surface_id = self.sequential_model.last_real_surface_id
@@ -138,7 +167,7 @@ class ParaxialModel:
 
         ray = RayFactory.ray(height=height, angle=paraxial_angle)
 
-        return trace(ray, self.sequential_model)
+        return trace(ray, self.sequential_model, axis=self.axis)
 
     @cached_property
     def effective_focal_length(self) -> float:
@@ -147,6 +176,11 @@ class ParaxialModel:
 
         y_1 = results[1, 0, 0]
         u_final = results[-2, 0, 1]
+        efl = -y_1 / u_final
+
+        # Handle edge case for infinite EFL
+        if np.isneginf(efl):
+            return np.inf
 
         return -y_1 / u_final
 
@@ -166,7 +200,7 @@ class ParaxialModel:
         steps = self.sequential_model[: self.aperture_stop - 1]
         ray = RayFactory.ray(height=0.0, angle=-1.0)  # -1 to trace backwards
 
-        results = trace(ray, steps, reverse=True)
+        results = trace(ray, steps, reverse=True, axis=self.axis)
 
         location = z_intercept(results[-1]).item()  # Relative to the first surface
 
@@ -195,7 +229,7 @@ class ParaxialModel:
         steps = self.sequential_model[self.aperture_stop - 1 :]
         ray = RayFactory.ray(height=0.0, angle=1.0)
 
-        results = trace(ray, steps)
+        results = trace(ray, steps, axis=self.axis)
 
         # Propagate marginal ray to the exit pupil
         distance = z_intercept(results[-2])  # Relative to the last surface
@@ -213,11 +247,17 @@ class ParaxialModel:
         first_real_surface_id = self.sequential_model.first_real_surface_id
         results_id = self.sequential_model.reverse_id(first_real_surface_id)
         ffl = z_intercept(results[results_id])[0]
+
+        if np.isneginf(ffl):
+            return np.inf
+
         return ffl
 
     @cached_property
     def front_principal_plane(self) -> float:
         """Returns the z-coordinate of the front principal plane."""
+        if np.isinf(self.front_focal_length):
+            return np.nan
 
         return self.front_focal_length + self.effective_focal_length
 
@@ -245,7 +285,7 @@ class ParaxialModel:
         # Ray parallel to the optical axis at a height of 1.
         ray = RayFactory.ray(height=1.0, angle=0.0)
 
-        return trace(ray, self.sequential_model)
+        return trace(ray, self.sequential_model, axis=self.axis)
 
     @cached_property
     def paraxial_image_plane(self) -> ImagePlane:
@@ -253,9 +293,17 @@ class ParaxialModel:
 
         This is the theoretical image plane, not the user-defined one.
 
+        See Also
+        --------
+        user_image_plane : The user-defined image plane.
+
         """
         dz = z_intercept(self.marginal_ray[-1])[0]
         location = self.z_coordinate(len(self.sequential_model.surfaces) - 1) + dz
+
+        # Edge case for infinite image plane
+        if np.isneginf(location):
+            return {"location": np.inf, "semi_diameter": np.nan}
 
         # Take the chief ray and propagate it to the theoretical image plane.
         semi_diameter = abs(propagate(self.chief_ray[-1], dz)[0, 0])
@@ -273,23 +321,25 @@ class ParaxialModel:
             # Ray originating at the optical axis at an angle of 1.
             ray = RayFactory.ray(height=0.0, angle=1.0)
 
-        return trace(ray, self.sequential_model)
+        return trace(ray, self.sequential_model, axis=self.axis)
 
     @cached_property
     def reversed_parallel_ray(self) -> RayTraceResults:
         """A ray used to compute front focal lengths."""
         ray = RayFactory.ray(height=1.0, angle=0.0)
 
-        return trace(ray, self.sequential_model, reverse=True)
+        return trace(ray, self.sequential_model, reverse=True, axis=self.axis)
 
     @cached_property
     def user_image_plane(self) -> ImagePlane:
         """Returns the location and semi-diameter of the user-defined image plane.
 
         This is a user-defined quantity because the image-space gap is provided by
-        the user. To get the theoretical location, we need to use a marginal ray
-        solve to find the olcation where the marginal ray intercepts the axis in the
-        image space.
+        the user.
+
+        See Also
+        --------
+        paraxial_image_plane : The theoretical image plane.
 
         """
         location = self.z_coordinate(len(self.sequential_model.surfaces) - 1)
@@ -383,7 +433,19 @@ def surface_rtm_mapping(
             raise ValueError(f"Unknown surface type: {surface}")
 
 
-def rtms(steps: SequentialModel, reverse: bool = False) -> list[npt.NDArray[Float]]:
+def roc(surface: Surface, axis: Axis) -> float:
+    """Return the radius of curvature of a surface along a given axis."""
+    # By convention, the toric's radius of revolution is about the y-axis, so it is
+    # the revolution curvature is xin the x-z plane.
+    if isinstance(surface, Toric) and axis == Axis.X:
+        return surface.radius_of_revolution
+
+    return surface.radius_of_curvature
+
+
+def rtms(
+    steps: SequentialModel, reverse: bool = False, axis: Axis = Axis.Y
+) -> list[npt.NDArray[Float]]:
     """Compute the ray transfer matrices for each tracing step.
 
     In the case that the object space is of infinite extent, the first gap thickness is
@@ -411,7 +473,7 @@ def rtms(steps: SequentialModel, reverse: bool = False) -> list[npt.NDArray[Floa
             if gap_0 is None or np.isinf(gap_0.thickness)
             else gap_0.thickness
         )
-        R = surface.radius_of_curvature
+        R = roc(surface, axis)
         n0 = gap_1.refractive_index if gap_0 is None else gap_0.refractive_index
         n1 = gap_0.refractive_index if gap_1 is None else gap_1.refractive_index
 
@@ -421,7 +483,10 @@ def rtms(steps: SequentialModel, reverse: bool = False) -> list[npt.NDArray[Floa
 
 
 def trace(
-    rays: npt.NDArray[Float], steps=SequentialModel, reverse=False
+    rays: npt.NDArray[Float],
+    steps=SequentialModel,
+    reverse=False,
+    axis=Axis.Y,
 ) -> npt.NDArray[Float]:
     """Trace rays through a paraxial system.
 
@@ -439,7 +504,7 @@ def trace(
     rays = np.atleast_2d(rays)
 
     # Compute the ray transfer matrices for each step.
-    txs = rtms(steps, reverse=reverse)
+    txs = rtms(steps, reverse=reverse, axis=axis)
 
     # Pre-allocate the results. Shape is Ns X Nr X 2, where Ns is the number of
     # surfaces, Nr is the number of rays, and 2 is the ray height and angle.

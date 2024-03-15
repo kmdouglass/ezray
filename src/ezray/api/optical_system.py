@@ -1,18 +1,11 @@
 from dataclasses import dataclass, InitVar, field
-from enum import Enum
 from typing import Sequence
 
-from ezray.core.general_ray_tracing import Gap, SequentialModel, Surface
+from ezray.core.general_ray_tracing import Axis, Gap, SequentialModel, Surface
 from ezray.models.sequential_model import DefaultSequentialModel
 from ezray.models.paraxial_model import ParaxialModel
 from ezray.specs import ApertureSpec, FieldSpec, GapSpec, SurfaceSpec
 from ezray.specs.fields import Angle
-
-
-class Axis(Enum):
-    X = "x"
-    Y = "y"
-    Z = "z"
 
 
 type Wavelength = float
@@ -71,6 +64,7 @@ class OpticalSystem:
                 self.sequential_model,
                 fields_by_wavelength[wavelength],
                 object_space_telecentric=self.object_space_telecentric,
+                axis=axis,
             )
             for wavelength in wavelengths
             for axis in [Axis.X, Axis.Y]
