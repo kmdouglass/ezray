@@ -1,11 +1,13 @@
 from dataclasses import dataclass, InitVar, field
 from typing import Sequence
 
-from ezray.core.general_ray_tracing import Axis, Gap, SequentialModel, Surface
+from ezray.core.general_ray_tracing import Gap, SequentialModel, Surface
 from ezray.models.sequential_model import DefaultSequentialModel
 from ezray.models.paraxial_model import ParaxialModel
 from ezray.specs import ApertureSpec, FieldSpec, GapSpec, SurfaceSpec
 from ezray.specs.fields import Angle
+
+from .axis import Axis
 
 
 type Wavelength = float
@@ -22,7 +24,7 @@ class OpticalSystem:
     object_space_telecentric: bool = False
 
     paraxial_models: ParaxialModels = field(init=False)
-    sequential_model: SequentialModel = field(init=False)
+    _sequential_model: SequentialModel = field(init=False)
 
     def __post_init__(
         self,
@@ -35,7 +37,7 @@ class OpticalSystem:
 
         surface_gap_sequence = self._surface_gap_sequence(gaps, surfaces)
 
-        self.sequential_model = DefaultSequentialModel(surface_gap_sequence)
+        self._sequential_model = DefaultSequentialModel(surface_gap_sequence)
         self.paraxial_models = self._paraxial_models(fields)
 
     def _paraxial_models(self, fields: Sequence[FieldSpec]) -> ParaxialModels:
@@ -61,7 +63,7 @@ class OpticalSystem:
 
         return {
             (wavelength, axis): ParaxialModel(
-                self.sequential_model,
+                self._sequential_model,
                 fields_by_wavelength[wavelength],
                 object_space_telecentric=self.object_space_telecentric,
                 axis=axis,

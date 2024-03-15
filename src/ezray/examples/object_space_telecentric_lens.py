@@ -9,6 +9,7 @@ from typing import Any
 import numpy as np
 
 from ezray import Axis, ParaxialModelID, OpticalSystem
+from ezray.systems.axis import Axis
 from ezray.specs.aperture import EntrancePupil
 from ezray.specs.fields import ObjectHeight
 from ezray.specs.gaps import Gap

@@ -8,8 +8,8 @@ import numpy as np
 from numpy.linalg import inv
 import numpy.typing as npt
 
+from ezray.systems.axis import Axis
 from ezray.core.general_ray_tracing import (
-    Axis,
     Conic,
     Float,
     Image,

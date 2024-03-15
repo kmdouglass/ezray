@@ -1,1 +1,7 @@
-from .api.optical_system import Axis, ParaxialModelID, OpticalSystem  # noqa: F401
+from .systems.axis import Axis
+from .systems.optical_system import (
+    ParaxialModel,
+    ParaxialModelID,
+    ParaxialModels,
+    OpticalSystem,
+)  # noqa: F401

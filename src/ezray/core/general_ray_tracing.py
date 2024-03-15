@@ -5,12 +5,6 @@ from typing import Optional, Protocol, Sequence, runtime_checkable
 import numpy as np
 
 
-class Axis(Enum):
-    X = "x"
-    Y = "y"
-    Z = "z"
-
-
 type Float = np.float64
 
 

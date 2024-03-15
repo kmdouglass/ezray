@@ -1,4 +1,5 @@
-from ezray import Axis, OpticalSystem
+from ezray import OpticalSystem
+from ezray.systems.axis import Axis
 from ezray.specs.aperture import EntrancePupil
 from ezray.specs.fields import Angle, ObjectHeight
 from ezray.specs.gaps import Gap
