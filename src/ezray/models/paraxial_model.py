@@ -226,7 +226,7 @@ class ParaxialModel:
             }
 
         # Trace a ray from the aperture stop forwards through the system
-        steps = self.sequential_model[self.aperture_stop - 1 :]
+        steps = self.sequential_model[self.aperture_stop :]
         ray = RayFactory.ray(height=0.0, angle=1.0)
 
         results = trace(ray, steps, axis=self.axis)
@@ -353,8 +353,10 @@ class ParaxialModel:
         The origin is at the first surface.
 
         """
-        if surface_id == 0 and np.isinf(self.sequential_model.gaps[0].thickness):
+        if surface_id == 0 and self._is_obj_at_inf:
             return -np.inf
+        if surface_id == 0:
+            return -self.sequential_model.gaps[0].thickness
         if surface_id == 1:
             return 0.0
 

@@ -13,7 +13,7 @@ from ezray.core.general_ray_tracing import (
 )
 from ezray.models.paraxial_model import ParaxialModel, propagate
 from ezray.models.sequential_model import DefaultSequentialModel
-from ezray.specs.fields import Angle
+from ezray.specs.fields import Angle, ObjectHeight
 
 
 @pytest.fixture
@@ -40,6 +40,34 @@ def convexplano_lens():
     return ParaxialModel(sequential_model, fields)
 
 
+@pytest.fixture
+def biconvex_lens():
+    """Biconvex lens with finite object distance."""
+    surf_0 = Object()
+    gap_0 = Gap(refractive_index=1.0, thickness=200)
+    surf_1 = Conic(
+        semi_diameter=12.7,
+        radius_of_curvature=102.4,
+        surface_type=SurfaceType.REFRACTING,
+    )
+    gap_1 = Gap(refractive_index=1.517, thickness=3.6)
+    surf_2 = Conic(
+        semi_diameter=12.7,
+        radius_of_curvature=-102.4,
+        surface_type=SurfaceType.REFRACTING,
+    )
+    gap_2 = Gap(refractive_index=1.0, thickness=196.15)
+    surf_3 = Image()
+
+    fields = {ObjectHeight(height=0.0), ObjectHeight(height=5.0)}
+
+    sequential_model = DefaultSequentialModel(
+        [surf_0, gap_0, surf_1, gap_1, surf_2, gap_2, surf_3]
+    )
+
+    return ParaxialModel(sequential_model, fields)
+
+
 def test_propagate():
     rays = np.array([[1, 2], [3, 4]])
     distance = 5
@@ -55,3 +83,11 @@ def test_sequential_model_z_coordinates(convexplano_lens):
 
     for i, result in enumerate(results):
         assert np.allclose(convexplano_lens.z_coordinate(i), result)
+
+
+def test_sequential_model_z_coordinates_finite_object(biconvex_lens):
+    """Test the z_coordinates property of the model with a finite object distance."""
+    results = [-200, 0.0, 3.6, 196.1516 + 3.6]
+
+    for i, result in enumerate(results):
+        assert np.allclose(biconvex_lens.z_coordinate(i), result)
